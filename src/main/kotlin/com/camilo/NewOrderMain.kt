@@ -5,23 +5,22 @@ import org.apache.kafka.clients.producer.ProducerConfig
 import org.apache.kafka.clients.producer.ProducerRecord
 import org.apache.kafka.clients.producer.RecordMetadata
 import org.apache.kafka.common.serialization.StringSerializer
-import java.lang.Exception
 import java.util.*
-import java.util.Objects.*
+import java.util.Objects.nonNull
 
-class NewOrderMain {}
+class NewOrderMain
 
 fun main(args: Array<String>) {
-    val producer = KafkaProducer<String, String>(properties())
+    val producer = KafkaProducer<String, String>(mainProperties())
     val value = "12312321,123123,1231"
-    val record = ProducerRecord("ECOMMERCE_NEW_ORDER", value, value);
+    val record = ProducerRecord("ECOMMERCE_NEW_ORDER", value, value)
     producer.send(record, handlerMessage()).get()
 }
 
-private fun handlerMessage(): (RecordMetadata, Exception) -> Unit {
+private fun handlerMessage(): (RecordMetadata, Exception?) -> Unit {
     return { data, ex ->
         if (nonNull(ex)) {
-            ex.printStackTrace()
+            ex?.printStackTrace()
         } else {
             println("Sucesso enviando: ${data.topic()} :: partition ${data.partition()} / offset ${data.offset()} /timestamp ${data.timestamp()}")
         }
@@ -29,7 +28,7 @@ private fun handlerMessage(): (RecordMetadata, Exception) -> Unit {
     }
 }
 
-private fun properties(): Properties {
+fun mainProperties(): Properties {
     val properties = Properties()
     properties.setProperty(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, "127.0.0.1:9092")
     properties.setProperty(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer::class.java.name)
