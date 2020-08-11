@@ -12,9 +12,16 @@ class NewOrderMain
 
 fun main(args: Array<String>) {
     val producer = KafkaProducer<String, String>(mainProperties())
-    val value = "12312321,123123,1231"
-    val record = ProducerRecord("ECOMMERCE_NEW_ORDER", value, value)
-    producer.send(record, handlerMessage()).get()
+    for (i in 1..100) {
+        val key = UUID.randomUUID().toString()
+        val value = "$key,123123,1231"
+        val email = "Thank you for order! We are processing your order!!!"
+        val record = ProducerRecord("ECOMMERCE_NEW_ORDER", key, value)
+        val emailRecord = ProducerRecord("ECOMMERCE_SEND_EMAIL", key, email)
+        producer.send(record, handlerMessage()).get()
+        producer.send(emailRecord, handlerMessage()).get()
+    }
+
 }
 
 private fun handlerMessage(): (RecordMetadata, Exception?) -> Unit {
