@@ -38,6 +38,7 @@ private fun fraudDetectorProperties(): Properties {
     properties.setProperty(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG,StringDeserializer::class.java.name)
     properties.setProperty(ConsumerConfig.GROUP_ID_CONFIG, FraudDetectorService::class.java.simpleName)
     properties.setProperty(ConsumerConfig.CLIENT_ID_CONFIG, FraudDetectorService::class.java.simpleName)
+    properties.setProperty(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, "1")
 
     return properties
 }
