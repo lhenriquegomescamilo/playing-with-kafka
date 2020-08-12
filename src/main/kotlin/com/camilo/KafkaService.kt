@@ -9,13 +9,15 @@ import java.util.*
 
 class KafkaService(
     topic: String,
-    private val parser: (ConsumerRecord<String, String>) -> Unit
+    groupId: String,
+    private val parser: (ConsumerRecord<String, String>) -> Unit,
+    subscribing: (KafkaConsumer<String, String>, String) -> Unit
 ) {
     private val consumer: KafkaConsumer<String, String>
 
     init {
-        consumer = KafkaConsumer(properties())
-        consumer.subscribe(Collections.singletonList(topic))
+        consumer = KafkaConsumer(properties(groupId))
+        subscribing(consumer, topic)
     }
 
     fun run() {
@@ -31,12 +33,13 @@ class KafkaService(
 
     }
 
-    private fun properties(): Properties {
+    private fun properties(groupId: String): Properties {
         val properties = Properties()
         properties.setProperty(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, "127.0.0.1:9092")
         properties.setProperty(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer::class.java.name)
         properties.setProperty(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, StringDeserializer::class.java.name)
-        properties.setProperty(ConsumerConfig.GROUP_ID_CONFIG, EmailService::class.java.simpleName)
+        properties.setProperty(ConsumerConfig.CLIENT_ID_CONFIG, UUID.randomUUID().toString())
+        properties.setProperty(ConsumerConfig.GROUP_ID_CONFIG, groupId)
         properties.setProperty(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, "1")
         return properties
     }

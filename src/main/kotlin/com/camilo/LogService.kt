@@ -1,43 +1,33 @@
 package com.camilo
 
-import org.apache.kafka.clients.consumer.ConsumerConfig
+import org.apache.kafka.clients.consumer.ConsumerRecord
 import org.apache.kafka.clients.consumer.KafkaConsumer
-import org.apache.kafka.common.serialization.StringDeserializer
-import java.time.Duration
-import java.util.*
 import java.util.regex.Pattern
 
-class LogService
+class LogService {
+    fun parser(record: ConsumerRecord<String, String>) {
+        println("-----------------------------------------------")
+        println("LOG")
+        println(record.key())
+        println(record.value())
+        println(record.topic())
+        println(record.partition())
+        println(record.offset())
+        println("-----------------------------------------------")
+    }
 
-fun main(vararg: Array<String>) {
-    val consumer = KafkaConsumer<String, String>(fraudDetectorProperties())
-    consumer.subscribe(Pattern.compile("ECOMMERCE.*"))
-    while (true) {
-        val records = consumer.poll(Duration.ofMillis(100))
-        if (!records.isEmpty) {
-            println("I found ${records.count()} records")
-            for (record in records) {
-                println("-----------------------------------------------")
-                println("LOG")
-                println(record.key())
-                println(record.value())
-                println(record.topic())
-                println(record.partition())
-                println(record.offset())
-                println("-----------------------------------------------")
-            }
-        }
+    fun subscribing(consumer: KafkaConsumer<String, String>, topic: String) {
+        consumer.subscribe(Pattern.compile(topic))
     }
 }
 
-private fun fraudDetectorProperties(): Properties {
-    val properties = Properties()
-    properties.setProperty(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, "127.0.0.1:9092")
-    properties.setProperty(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer::class.java.name)
-    properties.setProperty(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, StringDeserializer::class.java.name)
-    properties.setProperty(ConsumerConfig.GROUP_ID_CONFIG, LogService::class.java.simpleName)
-    properties.setProperty(ConsumerConfig.GROUP_ID_CONFIG, LogService::class.java.simpleName)
-    properties.setProperty(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, "1")
-
-    return properties
+fun main(vararg: Array<String>) {
+    val logService = LogService()
+    val kafkaService = KafkaService(
+        topic = "ECOMMERCE.*",
+        groupId = LogService::class.java.simpleName,
+        parser = logService::parser,
+        subscribing = logService::subscribing
+    )
+    kafkaService.run()
 }

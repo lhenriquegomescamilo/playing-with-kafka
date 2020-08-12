@@ -1,41 +1,48 @@
 package com.camilo
 
 import org.apache.kafka.clients.consumer.ConsumerConfig
+import org.apache.kafka.clients.consumer.ConsumerRecord
 import org.apache.kafka.clients.consumer.KafkaConsumer
 import org.apache.kafka.common.serialization.StringDeserializer
 import java.time.Duration
 import java.util.*
 
-class FraudDetectorService
+class FraudDetectorService {
+    fun parser(record: ConsumerRecord<String, String>) {
+        println("-----------------------------------------------")
+        println("Processing new order, checking for fraud")
+        println(record.key())
+        println(record.value())
+        println(record.topic())
+        println(record.partition())
+        println(record.offset())
+        println("-----------------------------------------------")
+        Thread.sleep(Duration.ofSeconds(5).toMillis())
+        println("Order processed")
+    }
+
+
+    fun subscribing(consumer: KafkaConsumer<String, String>, topic: String) {
+        consumer.subscribe(Collections.singletonList(topic))
+    }
+}
 
 fun main(vararg: Array<String>) {
-    val consumer = KafkaConsumer<String, String>(fraudDetectorProperties())
-    consumer.subscribe(Collections.singletonList("ECOMMERCE_NEW_ORDER"))
-    while (true) {
-        val records = consumer.poll(Duration.ofMillis(100))
-        if (!records.isEmpty) {
-            println("I found ${records.count()} records")
-            for (record in records) {
-                println("-----------------------------------------------")
-                println("Processing new order, checking for fraud")
-                println(record.key())
-                println(record.value())
-                println(record.topic())
-                println(record.partition())
-                println(record.offset())
-                println("-----------------------------------------------")
-                Thread.sleep(Duration.ofSeconds(5).toMillis())
-                println("Order processed")
-            }
-        }
-    }
+    val fraudDetectorService = FraudDetectorService()
+    val kafkaService = KafkaService(
+        groupId = FraudDetectorService::class.java.simpleName,
+        topic = "ECOMMERCE_NEW_ORDER",
+        parser = fraudDetectorService::parser,
+        subscribing = fraudDetectorService::subscribing
+    )
+    kafkaService.run()
 }
 
 private fun fraudDetectorProperties(): Properties {
     val properties = Properties()
     properties.setProperty(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, "127.0.0.1:9092")
     properties.setProperty(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer::class.java.name)
-    properties.setProperty(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG,StringDeserializer::class.java.name)
+    properties.setProperty(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, StringDeserializer::class.java.name)
     properties.setProperty(ConsumerConfig.GROUP_ID_CONFIG, FraudDetectorService::class.java.simpleName)
     properties.setProperty(ConsumerConfig.CLIENT_ID_CONFIG, FraudDetectorService::class.java.simpleName)
     properties.setProperty(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, "1")
