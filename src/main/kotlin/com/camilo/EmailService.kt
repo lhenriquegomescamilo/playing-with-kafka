@@ -6,7 +6,7 @@ import java.time.Duration
 import java.util.*
 
 class EmailService {
-    fun parser(record: ConsumerRecord<String, String>){
+    fun parser(record: ConsumerRecord<String, String>) {
         println("-----------------------------------------------")
         println("Send email")
         println(record.key())
@@ -19,7 +19,7 @@ class EmailService {
         println("Email sent")
     }
 
-    fun subscribing(consumer: KafkaConsumer<String, String> , topic: String) {
+    fun subscribing(consumer: KafkaConsumer<String, String>, topic: String) {
         consumer.subscribe(Collections.singletonList(topic))
     }
 
@@ -27,12 +27,12 @@ class EmailService {
 
 fun main(vararg: Array<String>) {
     val emailService = EmailService()
-    val kafkaService = KafkaService(
+    KafkaService(
         groupId = FraudDetectorService::class.java.simpleName,
         topic = "ECOMMERCE_SEND_EMAIL",
         parser = emailService::parser,
         subscribing = emailService::subscribing
-    )
-    kafkaService.run()
+    ).use { it.run() }
+
 
 }

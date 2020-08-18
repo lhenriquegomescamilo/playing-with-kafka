@@ -4,6 +4,7 @@ import org.apache.kafka.clients.consumer.ConsumerConfig
 import org.apache.kafka.clients.consumer.ConsumerRecord
 import org.apache.kafka.clients.consumer.KafkaConsumer
 import org.apache.kafka.common.serialization.StringDeserializer
+import java.io.Closeable
 import java.time.Duration
 import java.util.*
 
@@ -12,7 +13,7 @@ class KafkaService(
     groupId: String,
     private val parser: (ConsumerRecord<String, String>) -> Unit,
     subscribing: (KafkaConsumer<String, String>, String) -> Unit
-) {
+) : Closeable {
     private val consumer: KafkaConsumer<String, String>
 
     init {
@@ -42,5 +43,9 @@ class KafkaService(
         properties.setProperty(ConsumerConfig.GROUP_ID_CONFIG, groupId)
         properties.setProperty(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, "1")
         return properties
+    }
+
+    override fun close() {
+        this.consumer.close()
     }
 }
