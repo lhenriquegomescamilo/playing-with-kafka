@@ -1,5 +1,6 @@
 package com.camilo
 
+import com.camilo.serializers.GsonDeserializer
 import org.apache.kafka.clients.consumer.ConsumerConfig
 import org.apache.kafka.clients.consumer.ConsumerRecord
 import org.apache.kafka.clients.consumer.KafkaConsumer
@@ -8,16 +9,18 @@ import java.io.Closeable
 import java.time.Duration
 import java.util.*
 
-class KafkaService(
-    topic: String,
-    groupId: String,
-    private val parser: (ConsumerRecord<String, String>) -> Unit,
-    subscribing: (KafkaConsumer<String, String>, String) -> Unit
+class KafkaService<T>(
+    val topic: String,
+    val groupId: String,
+    private val parser: (ConsumerRecord<String, T>) -> Unit,
+    val subscribing: (KafkaConsumer<String, T>, String) -> Unit,
+    val type: Class<T>,
+    val propertiesExtras: Map<String, String>? = emptyMap()
 ) : Closeable {
-    private val consumer: KafkaConsumer<String, String>
+    private val consumer: KafkaConsumer<String, T>
 
     init {
-        consumer = KafkaConsumer(properties(groupId))
+        consumer = KafkaConsumer(properties(groupId, type))
         subscribing(consumer, topic)
     }
 
@@ -34,14 +37,17 @@ class KafkaService(
 
     }
 
-    private fun properties(groupId: String): Properties {
+    private fun properties(groupId: String, type: Class<T>): Properties {
         val properties = Properties()
         properties.setProperty(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, "127.0.0.1:9092")
         properties.setProperty(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer::class.java.name)
-        properties.setProperty(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, StringDeserializer::class.java.name)
-        properties.setProperty(ConsumerConfig.CLIENT_ID_CONFIG, UUID.randomUUID().toString())
+        properties.setProperty(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, GsonDeserializer::class.java.name)
         properties.setProperty(ConsumerConfig.GROUP_ID_CONFIG, groupId)
-        properties.setProperty(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, "1")
+        properties.setProperty(ConsumerConfig.CLIENT_ID_CONFIG, UUID.randomUUID().toString())
+        properties.setProperty(GsonDeserializer.TYPE_CONFIG, type.name)
+        propertiesExtras?.let { properties.putAll(it.toMap()) }
+
+
         return properties
     }
 

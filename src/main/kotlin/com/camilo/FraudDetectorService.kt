@@ -1,12 +1,13 @@
 package com.camilo
 
+import com.camilo.models.Order
 import org.apache.kafka.clients.consumer.ConsumerRecord
 import org.apache.kafka.clients.consumer.KafkaConsumer
 import java.time.Duration
 import java.util.*
 
 class FraudDetectorService {
-    fun parser(record: ConsumerRecord<String, String>) {
+    fun parser(record: ConsumerRecord<String, Order>) {
         println("-----------------------------------------------")
         println("Processing new order, checking for fraud")
         println(record.key())
@@ -20,7 +21,7 @@ class FraudDetectorService {
     }
 
 
-    fun subscribing(consumer: KafkaConsumer<String, String>, topic: String) {
+    fun subscribing(consumer: KafkaConsumer<String, Order>, topic: String) {
         consumer.subscribe(Collections.singletonList(topic))
     }
 }
@@ -28,9 +29,10 @@ class FraudDetectorService {
 fun main(vararg: Array<String>) {
     val fraudDetectorService = FraudDetectorService()
     KafkaService(
-        groupId = FraudDetectorService::class.java.simpleName,
         topic = "ECOMMERCE_NEW_ORDER",
+        groupId = FraudDetectorService::class.java.simpleName,
         parser = fraudDetectorService::parser,
-        subscribing = fraudDetectorService::subscribing
+        subscribing = fraudDetectorService::subscribing,
+        type = Order::class.java
     ).use { it.run() }
 }

@@ -1,4 +1,4 @@
-package com.camilo
+package com.camilo.models
 
 import java.math.BigDecimal
 
