@@ -26,7 +26,7 @@ class FraudDetectorService {
     }
 }
 
-fun main(vararg: Array<String>) {
+fun main() {
     val fraudDetectorService = FraudDetectorService()
     KafkaService(
         topic = "ECOMMERCE_NEW_ORDER",

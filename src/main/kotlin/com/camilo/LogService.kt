@@ -23,7 +23,7 @@ class LogService {
     }
 }
 
-fun main(vararg: Array<String>) {
+fun main() {
     val logService = LogService()
     val kafkaService = KafkaService(
         topic = "ECOMMERCE.*",

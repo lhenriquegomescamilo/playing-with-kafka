@@ -4,9 +4,7 @@ import com.camilo.models.Email
 import com.camilo.models.Order
 import java.util.*
 
-class NewOrderMain
-
-fun main(args: Array<String>) {
+fun main() {
     KafkaDispatcher<Order>().use { orderDispatcher ->
         KafkaDispatcher<Email>().use { emailDisatcher ->
             for (i in 1..10) {

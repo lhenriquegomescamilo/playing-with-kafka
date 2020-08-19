@@ -28,7 +28,7 @@ class EmailService {
 
 }
 
-fun main(vararg: Array<String>) {
+fun main() {
     val emailService = EmailService()
     KafkaService(
         topic = "ECOMMERCE_SEND_EMAIL",
