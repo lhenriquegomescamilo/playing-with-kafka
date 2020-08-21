@@ -16,7 +16,6 @@ fun main() {
                     orderId = orderId,
                     amount = amount.toBigDecimal()
                 )
-                val value = "$userId,123123,1231"
                 val body = "Thank you for order! We are processing your order!!!"
                 orderDispatcher.send("ECOMMERCE_NEW_ORDER", userId, order)
                 emailDisatcher.send("ECOMMERCE_SEND_EMAIL", userId, Email("aaaa@aaa.com", body))

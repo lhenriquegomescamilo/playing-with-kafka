@@ -5,22 +5,15 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>com.camilo</groupId>
-    <artifactId>ecommerce</artifactId>
+    <artifactId>common-kafka</artifactId>
     <version>1.0.0-SNAPSHOT</version>
-    <modules>
-        <module>servie-email</module>
-        <module>service-fraud-detector</module>
-        <module>service-log</module>
-        <module>service-new-order</module>
-        <module>common-kafka</module>
-    </modules>
-    <packaging>pom</packaging>
+    <packaging>jar</packaging>
 
-    <name>com.camilo.ecommerce</name>
+    <name>com.camilo common-kafka</name>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <kotlin.version>1.3.72</kotlin.version>
+        <kotlin.version>1.4.0</kotlin.version>
         <kotlin.code.style>official</kotlin.code.style>
         <junit.version>4.12</junit.version>
     </properties>
@@ -44,29 +37,11 @@
             <scope>test</scope>
         </dependency>
 
-
-        <!-- https://mvnrepository.com/artifact/org.apache.kafka/kafka-clients -->
         <dependency>
-            <groupId>org.apache.kafka</groupId>
-            <artifactId>kafka-clients</artifactId>
-            <version>2.5.0</version>
+            <groupId>com.camilo</groupId>
+            <artifactId>ecommerce</artifactId>
+            <version>1.0.0-SNAPSHOT</version>
         </dependency>
-
-
-        <!-- https://mvnrepository.com/artifact/org.slf4j/slf4j-simple -->
-        <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-simple</artifactId>
-            <version>1.7.30</version>
-        </dependency>
-
-        <!-- https://mvnrepository.com/artifact/com.google.code.gson/gson -->
-        <dependency>
-            <groupId>com.google.code.gson</groupId>
-            <artifactId>gson</artifactId>
-            <version>2.8.5</version>
-        </dependency>
-
 
     </dependencies>
 
