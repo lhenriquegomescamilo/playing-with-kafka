@@ -29,3 +29,6 @@ $ bin/kafka-topics.sh --alter --zookeeper localhost:2181 --topic ECOMMERCE_NEW_O
 $ bin/kafka-consumer-groups.sh --all-groups --bootstrap-server localhost:9092 --describe 
 ```
 
+
+### Running the project
+TODO

@@ -3,22 +3,39 @@ package com.camilo
 import com.camilo.models.Order
 import org.apache.kafka.clients.consumer.ConsumerRecord
 import org.apache.kafka.clients.consumer.KafkaConsumer
+import java.math.BigDecimal
 import java.time.Duration
 import java.util.*
 
-class FraudDetectorService {
+class FraudDetectorService(
+    private val orderDispatcher: KafkaDispatcher<Order> = KafkaDispatcher()
+) {
     fun parser(record: ConsumerRecord<String, Order>) {
+        val order = record.value()
         println("-----------------------------------------------")
         println("Processing new order, checking for fraud")
         println(record.key())
-        println(record.value())
         println(record.topic())
         println(record.partition())
         println(record.offset())
-        println("-----------------------------------------------")
         Thread.sleep(Duration.ofSeconds(5).toMillis())
+        detectorFraud(order)
         println("Order processed")
+        println("-----------------------------------------------")
     }
+
+    private fun detectorFraud(order: Order) {
+        if (isFraud(order)) {
+            // pretting that the process fraud happens when the amaount is great than 4500
+            println("Order $order is a fraud!!!")
+            orderDispatcher.send("ECOMMERCE_ORDER_REJECTED", order.email, order)
+        } else {
+            orderDispatcher.send("ECOMMERCE_ORDER_APPROVED", order.email, order)
+            println("Approved order $order")
+        }
+    }
+
+    private fun isFraud(value: Order) = value.amount > BigDecimal("4500")
 
 
     fun subscribing(consumer: KafkaConsumer<String, Order>, topic: String) {
