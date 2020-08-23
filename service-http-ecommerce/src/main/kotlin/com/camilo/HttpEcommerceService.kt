@@ -14,6 +14,9 @@ import io.ktor.server.engine.*
 import io.ktor.server.netty.*
 import java.util.*
 
+val orderKafkaDispatcher = KafkaDispatcher<Order>()
+val emailKafkaDispatcher = KafkaDispatcher<Email>()
+
 fun main() {
     val server = embeddedServer(Netty, 8080) {
         install(ContentNegotiation) {
@@ -38,9 +41,9 @@ private suspend fun handleOrderRequest(call: ApplicationCall) {
 }
 
 fun sendOrder(order: Order) {
-    KafkaDispatcher<Order>().use { orderDispatcher ->
-        val email = order.email
-        KafkaDispatcher<Email>().use { emailDisatcher ->
+    orderKafkaDispatcher.use { orderDispatcher ->
+        emailKafkaDispatcher.use { emailDisatcher ->
+            val email = order.email
             val orderId = UUID.randomUUID().toString()
             order.orderId = orderId
             orderDispatcher.send("ECOMMERCE_NEW_ORDER", email, order)
