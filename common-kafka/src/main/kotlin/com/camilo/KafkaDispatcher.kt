@@ -1,5 +1,7 @@
 package com.camilo
 
+import com.camilo.models.CorrelationId
+import com.camilo.models.Message
 import com.camilo.serializers.GsonSerializer
 import org.apache.kafka.clients.producer.KafkaProducer
 import org.apache.kafka.clients.producer.ProducerConfig
@@ -11,7 +13,7 @@ import java.util.*
 import java.util.Objects.nonNull
 
 class KafkaDispatcher<T> : Closeable {
-    private val producer: KafkaProducer<String, T> = KafkaProducer(mainProperties())
+    private val producer: KafkaProducer<String, Message<T>> = KafkaProducer(mainProperties())
 
 
     private fun mainProperties(): Properties {
@@ -35,8 +37,9 @@ class KafkaDispatcher<T> : Closeable {
         }
     }
 
-    fun send(topic: String, key: String, value: T?) {
-        val record = ProducerRecord(topic, key, value)
+    fun send(topic: String, key: String, payload: T) {
+        val message = Message(CorrelationId(), payload)
+        val record = ProducerRecord(topic, key, message)
         producer.send(record, handlerMessage()).get()
     }
 
