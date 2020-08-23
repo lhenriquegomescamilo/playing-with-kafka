@@ -7,7 +7,7 @@ import java.math.BigDecimal
 import java.time.Duration
 import java.util.*
 
-class FraudDetectorService(
+class ReadingReportService(
     private val orderDispatcher: KafkaDispatcher<Order> = KafkaDispatcher()
 ) : KafkaBaseService<String, Order> {
     override fun parser(record: ConsumerRecord<String, Order>) {
@@ -44,10 +44,10 @@ class FraudDetectorService(
 }
 
 fun main() {
-    val fraudDetectorService = FraudDetectorService()
+    val fraudDetectorService = ReadingReportService()
     KafkaService(
         topic = "ECOMMERCE_NEW_ORDER",
-        groupId = FraudDetectorService::class.java.simpleName,
+        groupId = ReadingReportService::class.java.simpleName,
         parser = fraudDetectorService::parser,
         subscribing = fraudDetectorService::subscribing,
         type = Order::class.java

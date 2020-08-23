@@ -8,8 +8,8 @@ import org.apache.kafka.common.serialization.StringDeserializer
 import java.time.Duration
 import java.util.*
 
-class EmailService {
-    fun parser(record: ConsumerRecord<String, Email>) {
+class EmailService : KafkaBaseService<String, Email> {
+    override fun parser(record: ConsumerRecord<String, Email>) {
         println("-----------------------------------------------")
         println("Send email")
         println(record.key())
@@ -22,7 +22,7 @@ class EmailService {
         println("Email sent")
     }
 
-    fun subscribing(consumer: KafkaConsumer<String, Email>, topic: String) {
+    override fun subscribing(consumer: KafkaConsumer<String, Email>, topic: String) {
         consumer.subscribe(Collections.singletonList(topic))
     }
 

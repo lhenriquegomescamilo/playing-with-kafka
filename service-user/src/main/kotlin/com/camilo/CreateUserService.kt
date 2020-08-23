@@ -8,8 +8,8 @@ import java.sql.DriverManager
 import java.util.*
 
 class CreateUserService(
-    val connection: Connection = DriverManager.getConnection("jdbc:sqlite:target/users_database.db")
-) {
+    private val connection: Connection = DriverManager.getConnection("jdbc:sqlite:target/users_database.db")
+) : KafkaBaseService<String, Order> {
     init {
         try {
             connection.createStatement()
@@ -20,7 +20,7 @@ class CreateUserService(
         }
     }
 
-    fun parser(record: ConsumerRecord<String, Order>) {
+    override fun parser(record: ConsumerRecord<String, Order>) {
 
         println("-----------------------------------------------")
         println("Processing new order, checking for new user")
@@ -49,7 +49,7 @@ class CreateUserService(
 
     }
 
-    fun subscribing(consumer: KafkaConsumer<String, Order>, topic: String) {
+    override fun subscribing(consumer: KafkaConsumer<String, Order>, topic: String) {
         consumer.subscribe(Collections.singletonList(topic))
     }
 }
