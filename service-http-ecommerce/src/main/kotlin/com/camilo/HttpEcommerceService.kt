@@ -2,6 +2,7 @@ package com.camilo
 
 import com.camilo.models.Email
 import com.camilo.models.Order
+import com.camilo.models.User
 import com.fasterxml.jackson.databind.SerializationFeature
 import io.ktor.application.*
 import io.ktor.features.*
@@ -17,6 +18,8 @@ import java.util.*
 
 val orderDispatcher = KafkaDispatcher<Order>()
 val emailDisatcher = KafkaDispatcher<Email>()
+val userDispatcher = KafkaDispatcher<User>()
+val batchDispatcher = KafkaDispatcher<String>()
 
 @KtorExperimentalAPI
 fun main() {
@@ -26,17 +29,24 @@ fun main() {
                 enable(SerializationFeature.INDENT_OUTPUT)
             }
         }
-
         routing {
             get("/health") { call.respond("I am alive") }
             post("/new") { handleOrderRequest(call) }
+            get("/reports") { generateAllReports(call) }
         }
     }
 
     server.start(wait = true)
     server.addShutdownHook {
-        arrayOf(orderDispatcher, emailDisatcher).forEach { kafkaDispatcher -> kafkaDispatcher.close() }
+        arrayOf(orderDispatcher, emailDisatcher, userDispatcher).forEach { kafkaDispatcher -> kafkaDispatcher.close() }
     }
+}
+
+private suspend fun generateAllReports(call: ApplicationCall) {
+    batchDispatcher.send("SEND_MESSAGE_TO_ALL_USERS", "USER_GENERATE_READING_REPORT", "USER_GENERATE_READING_REPORT")
+    println("Sent generate report to all users")
+    call.respond(HttpStatusCode.NoContent)
+
 }
 
 private suspend fun handleOrderRequest(call: ApplicationCall) {
@@ -45,6 +55,7 @@ private suspend fun handleOrderRequest(call: ApplicationCall) {
     call.respond(HttpStatusCode.NoContent)
     println("New order sent successfully")
 }
+
 
 fun sendOrderToKafka(order: Order) {
     val email = order.email

@@ -35,7 +35,7 @@ class KafkaDispatcher<T> : Closeable {
         }
     }
 
-    fun send(topic: String, key: String, value: T) {
+    fun send(topic: String, key: String, value: T?) {
         val record = ProducerRecord(topic, key, value)
         producer.send(record, handlerMessage()).get()
     }
