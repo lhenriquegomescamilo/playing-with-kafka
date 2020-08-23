@@ -39,7 +39,7 @@ class KafkaService<T>(
 
     private fun properties(groupId: String, type: Class<T>): Properties {
         val properties = Properties()
-        properties.setProperty(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, "127.0.0.1:9092")
+        properties.setProperty(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, "127.0.0.1:9090")
         properties.setProperty(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer::class.java.name)
         properties.setProperty(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, GsonDeserializer::class.java.name)
         properties.setProperty(ConsumerConfig.GROUP_ID_CONFIG, groupId)

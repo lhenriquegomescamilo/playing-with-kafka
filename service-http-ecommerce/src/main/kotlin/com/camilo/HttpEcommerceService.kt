@@ -14,16 +14,17 @@ import io.ktor.server.engine.*
 import io.ktor.server.netty.*
 import java.util.*
 
-val orderKafkaDispatcher = KafkaDispatcher<Order>()
-val emailKafkaDispatcher = KafkaDispatcher<Email>()
+val orderDispatcher = KafkaDispatcher<Order>()
+val emailDisatcher = KafkaDispatcher<Email>()
 
 fun main() {
-    val server = embeddedServer(Netty, 8080) {
+    val server = embeddedServer(Netty, 8081) {
         install(ContentNegotiation) {
             jackson {
                 enable(SerializationFeature.INDENT_OUTPUT)
             }
         }
+
         routing {
             get("/health") { call.respond("I am alive") }
             post("/new") { handleOrderRequest(call) }
@@ -31,23 +32,26 @@ fun main() {
     }
 
     server.start(wait = true)
+    server.addShutdownHook {
+        listOf<KafkaDispatcher<*>>(
+            orderDispatcher,
+            emailDisatcher
+        ).forEach { kafkaDispatcher -> kafkaDispatcher.close() }
+    }
 }
 
 private suspend fun handleOrderRequest(call: ApplicationCall) {
     val orderRequest = call.receive<Order>()
-    sendOrder(orderRequest)
+    sendOrderToKafka(orderRequest)
     call.respond(HttpStatusCode.NoContent)
     println("New order sent successfully")
 }
 
-fun sendOrder(order: Order) {
-    orderKafkaDispatcher.use { orderDispatcher ->
-        emailKafkaDispatcher.use { emailDisatcher ->
-            val email = order.email
-            val orderId = UUID.randomUUID().toString()
-            order.orderId = orderId
-            orderDispatcher.send("ECOMMERCE_NEW_ORDER", email, order)
-            emailDisatcher.send("ECOMMERCE_SEND_EMAIL", email, Email(email))
-        }
-    }
+fun sendOrderToKafka(order: Order) {
+    val email = order.email
+    val orderId = UUID.randomUUID().toString()
+    order.orderId = orderId
+    orderDispatcher.send("ECOMMERCE_NEW_ORDER", email, order)
+    emailDisatcher.send("ECOMMERCE_SEND_EMAIL", email, Email(email))
+
 }
