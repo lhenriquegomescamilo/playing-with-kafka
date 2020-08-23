@@ -31,4 +31,7 @@ $ bin/kafka-consumer-groups.sh --all-groups --bootstrap-server localhost:9092 --
 
 
 ### Running the project
+#### The Structure
+TODO
+#### Running on Docker
 TODO
