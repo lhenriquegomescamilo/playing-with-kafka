@@ -2,7 +2,12 @@ package com.camilo
 
 import com.camilo.models.Email
 import com.camilo.models.Order
+import com.fasterxml.jackson.databind.SerializationFeature
 import io.ktor.application.*
+import io.ktor.features.*
+import io.ktor.http.*
+import io.ktor.jackson.*
+import io.ktor.request.*
 import io.ktor.response.*
 import io.ktor.routing.*
 import io.ktor.server.engine.*
@@ -11,35 +16,35 @@ import java.util.*
 
 fun main() {
     val server = embeddedServer(Netty, 8080) {
-        routing {
-            get("/new") {
-                val body = "Thank you for order! We are processing your order!!!"
-                generateOrder(body)
-                call.respond(body)
-
+        install(ContentNegotiation) {
+            jackson {
+                enable(SerializationFeature.INDENT_OUTPUT)
             }
+        }
+        routing {
+            get("/health") { call.respond("I am alive") }
+            post("/new") { handleOrderRequest(call) }
         }
     }
 
     server.start(wait = true)
 }
 
-fun generateOrder(messageBody: String) {
+private suspend fun handleOrderRequest(call: ApplicationCall) {
+    val orderRequest = call.receive<Order>()
+    sendOrder(orderRequest)
+    call.respond(HttpStatusCode.NoContent)
+    println("New order sent successfully")
+}
+
+fun sendOrder(order: Order) {
     KafkaDispatcher<Order>().use { orderDispatcher ->
-        val email = "${randomEmail()}@email.com"
+        val email = order.email
         KafkaDispatcher<Email>().use { emailDisatcher ->
             val orderId = UUID.randomUUID().toString()
-            val amount = Math.random() * 5000 + 1
-            val order = Order(
-                orderId = orderId,
-                amount = amount.toBigDecimal(),
-                email = email
-            )
+            order.orderId = orderId
             orderDispatcher.send("ECOMMERCE_NEW_ORDER", email, order)
-            emailDisatcher.send("ECOMMERCE_SEND_EMAIL", email, Email(email, messageBody))
+            emailDisatcher.send("ECOMMERCE_SEND_EMAIL", email, Email(email))
         }
     }
 }
-
-
-fun randomEmail(): String = Math.random().toString()

@@ -4,6 +4,10 @@ import com.camilo.models.Email
 import com.camilo.models.Order
 import java.util.*
 
+/**
+ * DEPRECREATED
+ */
+@Deprecated("Use HttpEcommerceService, this is will be discontinued")
 fun main() {
     KafkaDispatcher<Order>().use { orderDispatcher ->
         val email = "${randomEmail()}@email.com"
