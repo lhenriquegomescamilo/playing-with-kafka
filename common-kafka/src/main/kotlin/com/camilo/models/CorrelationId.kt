@@ -2,4 +2,7 @@ package com.camilo.models
 
 import java.util.*
 
-data class CorrelationId(val id: String = UUID.randomUUID().toString())
+data class CorrelationId(
+    private val title: String,
+    val id: String = "${title}:(${UUID.randomUUID()})",
+)

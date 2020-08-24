@@ -9,7 +9,7 @@ import java.time.Duration
 import java.util.*
 
 class FraudDetectorService(
-    private val orderDispatcher: KafkaDispatcher<Order> = KafkaDispatcher()
+    private val orderDispatcher: KafkaDispatcher<Order> = KafkaDispatcher(FraudDetectorService::class.java.simpleName)
 ) : KafkaBaseService<String, Order> {
     override fun parser(record: ConsumerRecord<String, Message<Order>>) {
         val value = record.value()

@@ -16,10 +16,12 @@ import io.ktor.server.netty.*
 import io.ktor.util.*
 import java.util.*
 
-val orderDispatcher = KafkaDispatcher<Order>()
-val emailDisatcher = KafkaDispatcher<Email>()
-val userDispatcher = KafkaDispatcher<User>()
-val batchDispatcher = KafkaDispatcher<String>()
+val orderDispatcher = KafkaDispatcher<Order>(HttpEcommerceService::class.java.simpleName)
+val emailDisatcher = KafkaDispatcher<Email>(HttpEcommerceService::class.java.simpleName)
+val userDispatcher = KafkaDispatcher<User>(HttpEcommerceService::class.java.simpleName)
+val batchDispatcher = KafkaDispatcher<String>(HttpEcommerceService::class.java.simpleName)
+
+class HttpEcommerceService
 
 @KtorExperimentalAPI
 fun main() {
@@ -43,7 +45,7 @@ fun main() {
 }
 
 private suspend fun generateAllReports(call: ApplicationCall) {
-    batchDispatcher.send("SEND_MESSAGE_TO_ALL_USERS", "USER_GENERATE_READING_REPORT", "USER_GENERATE_READING_REPORT")
+    batchDispatcher.send("ECOMMERCE_SEND_MESSAGE_TO_ALL_USERS", "ECOMMERCE_USER_GENERATE_READING_REPORT", "ECOMMERCE_USER_GENERATE_READING_REPORT")
     println("Sent generate report to all users")
     call.respond(HttpStatusCode.NoContent)
 

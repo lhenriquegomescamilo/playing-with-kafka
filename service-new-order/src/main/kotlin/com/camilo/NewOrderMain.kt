@@ -4,14 +4,15 @@ import com.camilo.models.Email
 import com.camilo.models.Order
 import java.util.*
 
+class NewOrderMain
 /**
  * DEPRECREATED
  */
 @Deprecated("Use HttpEcommerceService, this is will be discontinued")
 fun main() {
-    KafkaDispatcher<Order>().use { orderDispatcher ->
+    KafkaDispatcher<Order>(NewOrderMain::class.java.simpleName).use { orderDispatcher ->
         val email = "${randomEmail()}@email.com"
-        KafkaDispatcher<Email>().use { emailDisatcher ->
+        KafkaDispatcher<Email>(NewOrderMain::class.java.simpleName).use { emailDisatcher ->
             for (i in 1..10) {
                 val orderId = UUID.randomUUID().toString()
                 val amount = Math.random() * 5000 + 1

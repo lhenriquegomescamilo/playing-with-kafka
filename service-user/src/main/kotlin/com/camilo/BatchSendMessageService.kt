@@ -10,7 +10,7 @@ import java.util.*
 
 class BatchSendMessageService(
     private val connection: Connection = DriverManager.getConnection("jdbc:sqlite:target/users_database.db"),
-    private val userDispatcher: KafkaDispatcher<User> = KafkaDispatcher<User>()
+    private val userDispatcher: KafkaDispatcher<User> = KafkaDispatcher(BatchSendMessageService::class.java.simpleName)
 ) : KafkaBaseService<String, String> {
 
 
@@ -50,7 +50,7 @@ class BatchSendMessageService(
 fun main() {
     val batchSendMessageService = BatchSendMessageService()
     KafkaService(
-        topic = "SEND_MESSAGE_TO_ALL_USERS",
+        topic = "ECOMMERCE_SEND_MESSAGE_TO_ALL_USERS",
         groupId = CreateUserService::class.java.simpleName,
         parser = batchSendMessageService::parser,
         subscribing = batchSendMessageService::subscribing,
