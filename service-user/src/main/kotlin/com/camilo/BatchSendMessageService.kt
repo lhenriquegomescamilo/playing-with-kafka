@@ -10,7 +10,7 @@ import java.util.*
 
 class BatchSendMessageService(
     private val connection: Connection = DriverManager.getConnection("jdbc:sqlite:target/users_database.db"),
-    private val userDispatcher: KafkaDispatcher<User> = KafkaDispatcher(BatchSendMessageService::class.java.simpleName)
+    private val userDispatcher: KafkaDispatcher<User> = KafkaDispatcher(),
 ) : KafkaBaseService<String, String> {
 
 
@@ -25,11 +25,17 @@ class BatchSendMessageService(
     }
 
     override fun parser(record: ConsumerRecord<String, Message<String>>) {
+        val message = record.value()
         println("-----------------------------------------------")
         println("Processing new batch")
-        println("Topic : ${record.value()}")
+        println("Topic : $message")
         for (user in findAllUsers()) {
-            userDispatcher.send(record.value().payload, user.uuid, user)
+            userDispatcher.send(
+                record.value().payload,
+                user.uuid,
+                user,
+                message.id.continueWith(BatchSendMessageService::class.java.simpleName)
+            )
         }
         println("Users processed")
     }

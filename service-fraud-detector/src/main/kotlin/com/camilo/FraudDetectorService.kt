@@ -9,7 +9,7 @@ import java.time.Duration
 import java.util.*
 
 class FraudDetectorService(
-    private val orderDispatcher: KafkaDispatcher<Order> = KafkaDispatcher(FraudDetectorService::class.java.simpleName)
+    private val orderDispatcher: KafkaDispatcher<Order> = KafkaDispatcher(),
 ) : KafkaBaseService<String, Order> {
     override fun parser(record: ConsumerRecord<String, Message<Order>>) {
         val value = record.value()
@@ -21,18 +21,24 @@ class FraudDetectorService(
         println(record.partition())
         println(record.offset())
         Thread.sleep(Duration.ofSeconds(5).toMillis())
-        detectorFraud(order)
+        detectorFraud(order, value)
         println("Order processed")
         println("-----------------------------------------------")
     }
 
-    private fun detectorFraud(order: Order) {
+    private fun detectorFraud(order: Order, message: Message<Order>) {
         if (isFraud(order)) {
             // pretting that the process fraud happens when the amaount is great than 4500
             println("Order $order is a fraud!!!")
-            orderDispatcher.send("ECOMMERCE_ORDER_REJECTED", order.email, order)
+            orderDispatcher.send("ECOMMERCE_ORDER_REJECTED",
+                order.email,
+                order,
+                message.id.continueWith(FraudDetectorService::class.java.simpleName))
         } else {
-            orderDispatcher.send("ECOMMERCE_ORDER_APPROVED", order.email, order)
+            orderDispatcher.send("ECOMMERCE_ORDER_APPROVED",
+                order.email,
+                order,
+                message.id.continueWith(FraudDetectorService::class.java.simpleName))
             println("Approved order $order")
         }
     }

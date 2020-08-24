@@ -1,5 +1,6 @@
 package com.camilo
 
+import com.camilo.models.CorrelationId
 import com.camilo.models.Email
 import com.camilo.models.Order
 import com.camilo.models.User
@@ -16,10 +17,10 @@ import io.ktor.server.netty.*
 import io.ktor.util.*
 import java.util.*
 
-val orderDispatcher = KafkaDispatcher<Order>(HttpEcommerceService::class.java.simpleName)
-val emailDisatcher = KafkaDispatcher<Email>(HttpEcommerceService::class.java.simpleName)
-val userDispatcher = KafkaDispatcher<User>(HttpEcommerceService::class.java.simpleName)
-val batchDispatcher = KafkaDispatcher<String>(HttpEcommerceService::class.java.simpleName)
+val orderDispatcher = KafkaDispatcher<Order>()
+val emailDisatcher = KafkaDispatcher<Email>()
+val userDispatcher = KafkaDispatcher<User>()
+val batchDispatcher = KafkaDispatcher<String>()
 
 class HttpEcommerceService
 
@@ -45,7 +46,10 @@ fun main() {
 }
 
 private suspend fun generateAllReports(call: ApplicationCall) {
-    batchDispatcher.send("ECOMMERCE_SEND_MESSAGE_TO_ALL_USERS", "ECOMMERCE_USER_GENERATE_READING_REPORT", "ECOMMERCE_USER_GENERATE_READING_REPORT")
+    batchDispatcher.send("ECOMMERCE_SEND_MESSAGE_TO_ALL_USERS",
+        "ECOMMERCE_USER_GENERATE_READING_REPORT",
+        "ECOMMERCE_USER_GENERATE_READING_REPORT",
+        CorrelationId(HttpEcommerceService::class.java.simpleName))
     println("Sent generate report to all users")
     call.respond(HttpStatusCode.NoContent)
 
@@ -63,7 +67,13 @@ fun sendOrderToKafka(order: Order) {
     val email = order.email
     val orderId = UUID.randomUUID().toString()
     order.orderId = orderId
-    orderDispatcher.send("ECOMMERCE_NEW_ORDER", email, order)
-    emailDisatcher.send("ECOMMERCE_SEND_EMAIL", email, Email(email))
+    orderDispatcher.send("ECOMMERCE_NEW_ORDER",
+        email,
+        order,
+        CorrelationId(HttpEcommerceService::class.java.simpleName))
+    emailDisatcher.send("ECOMMERCE_SEND_EMAIL",
+        email,
+        Email(email),
+        CorrelationId(HttpEcommerceService::class.java.simpleName))
 
 }

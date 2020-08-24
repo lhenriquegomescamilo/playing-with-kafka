@@ -12,7 +12,7 @@ import java.io.Closeable
 import java.util.*
 import java.util.Objects.nonNull
 
-class KafkaDispatcher<T>(val simpleName: String) : Closeable {
+class KafkaDispatcher<T>() : Closeable {
     private val producer: KafkaProducer<String, Message<T>> = KafkaProducer(mainProperties())
 
 
@@ -37,8 +37,8 @@ class KafkaDispatcher<T>(val simpleName: String) : Closeable {
         }
     }
 
-    fun send(topic: String, key: String, payload: T) {
-        val message = Message(CorrelationId(title = simpleName), payload)
+    fun send(topic: String, key: String, payload: T, correlationId: CorrelationId) {
+        val message = Message(correlationId, payload)
         val record = ProducerRecord(topic, key, message)
         producer.send(record, handlerMessage()).get()
     }

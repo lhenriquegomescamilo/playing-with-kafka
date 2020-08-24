@@ -9,9 +9,7 @@ import java.io.File
 import java.nio.file.Path
 import java.util.*
 
-class ReadingReportService(
-    private val orderDispatcher: KafkaDispatcher<User> = KafkaDispatcher(ReadingReportService::class.java.simpleName)
-) : KafkaBaseService<String, User> {
+class ReadingReportService : KafkaBaseService<String, User> {
     companion object {
         val source: Path = File("src/main/resources/report.txt").toPath()
     }
