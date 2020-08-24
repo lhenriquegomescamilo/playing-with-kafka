@@ -1,5 +1,6 @@
 package com.camilo
 
+import com.camilo.models.Message
 import com.camilo.models.User
 import org.apache.kafka.clients.consumer.ConsumerRecord
 import org.apache.kafka.clients.consumer.KafkaConsumer
@@ -23,12 +24,12 @@ class BatchSendMessageService(
         }
     }
 
-    override fun parser(record: ConsumerRecord<String, String>) {
+    override fun parser(record: ConsumerRecord<String, Message<String>>) {
         println("-----------------------------------------------")
         println("Processing new batch")
         println("Topic : ${record.value()}")
         for (user in findAllUsers()) {
-            userDispatcher.send(record.value(), user.uuid, user)
+            userDispatcher.send(record.value().payload, user.uuid, user)
         }
         println("Users processed")
     }
@@ -40,7 +41,7 @@ class BatchSendMessageService(
         return users
     }
 
-    override fun subscribing(consumer: KafkaConsumer<String, String>, topic: String) {
+    override fun subscribing(consumer: KafkaConsumer<String, Message<String>>, topic: String) {
         consumer.subscribe(Collections.singletonList(topic))
     }
 }

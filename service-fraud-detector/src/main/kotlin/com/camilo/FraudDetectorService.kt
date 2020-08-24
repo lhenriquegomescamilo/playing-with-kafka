@@ -1,5 +1,6 @@
 package com.camilo
 
+import com.camilo.models.Message
 import com.camilo.models.Order
 import org.apache.kafka.clients.consumer.ConsumerRecord
 import org.apache.kafka.clients.consumer.KafkaConsumer
@@ -10,8 +11,9 @@ import java.util.*
 class FraudDetectorService(
     private val orderDispatcher: KafkaDispatcher<Order> = KafkaDispatcher()
 ) : KafkaBaseService<String, Order> {
-    override fun parser(record: ConsumerRecord<String, Order>) {
-        val order = record.value()
+    override fun parser(record: ConsumerRecord<String, Message<Order>>) {
+        val value = record.value()
+        val order = value.payload
         println("-----------------------------------------------")
         println("Processing new order, checking for fraud")
         println(record.key())
@@ -38,7 +40,7 @@ class FraudDetectorService(
     private fun isFraud(value: Order) = value.amount > BigDecimal("4500")
 
 
-    override fun subscribing(consumer: KafkaConsumer<String, Order>, topic: String) {
+    override fun subscribing(consumer: KafkaConsumer<String, Message<Order>>, topic: String) {
         consumer.subscribe(Collections.singletonList(topic))
     }
 }

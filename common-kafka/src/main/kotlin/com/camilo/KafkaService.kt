@@ -1,5 +1,6 @@
 package com.camilo
 
+import com.camilo.models.Message
 import com.camilo.serializers.GsonDeserializer
 import org.apache.kafka.clients.consumer.ConsumerConfig
 import org.apache.kafka.clients.consumer.ConsumerRecord
@@ -12,15 +13,15 @@ import java.util.*
 class KafkaService<T>(
     val topic: String,
     val groupId: String,
-    private val parser: (ConsumerRecord<String, T>) -> Unit,
-    val subscribing: (KafkaConsumer<String, T>, String) -> Unit,
+    private val parser: (ConsumerRecord<String, Message<T>>) -> Unit,
+    val subscribing: (KafkaConsumer<String, Message<T>>, String) -> Unit,
     val type: Class<T>,
     val propertiesExtras: Map<String, String>? = emptyMap()
 ) : Closeable {
-    private val consumer: KafkaConsumer<String, T>
+    private val consumer: KafkaConsumer<String, Message<T>>
 
     init {
-        consumer = KafkaConsumer(properties(groupId, type))
+        consumer = KafkaConsumer(properties(groupId))
         subscribing(consumer, topic)
     }
 
@@ -37,17 +38,14 @@ class KafkaService<T>(
 
     }
 
-    private fun properties(groupId: String, type: Class<T>): Properties {
+    private fun properties(groupId: String): Properties {
         val properties = Properties()
         properties.setProperty(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, "127.0.0.1:9090")
         properties.setProperty(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer::class.java.name)
         properties.setProperty(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, GsonDeserializer::class.java.name)
         properties.setProperty(ConsumerConfig.GROUP_ID_CONFIG, groupId)
         properties.setProperty(ConsumerConfig.CLIENT_ID_CONFIG, UUID.randomUUID().toString())
-        properties.setProperty(GsonDeserializer.TYPE_CONFIG, type.name)
         propertiesExtras?.let { properties.putAll(it.toMap()) }
-
-
         return properties
     }
 

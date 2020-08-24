@@ -1,6 +1,7 @@
 package com.camilo
 
 import com.camilo.models.Email
+import com.camilo.models.Message
 import org.apache.kafka.clients.consumer.ConsumerConfig
 import org.apache.kafka.clients.consumer.ConsumerRecord
 import org.apache.kafka.clients.consumer.KafkaConsumer
@@ -9,7 +10,7 @@ import java.time.Duration
 import java.util.*
 
 class EmailService : KafkaBaseService<String, Email> {
-    override fun parser(record: ConsumerRecord<String, Email>) {
+    override fun parser(record: ConsumerRecord<String, Message<Email>>) {
         println("-----------------------------------------------")
         println("Send email")
         println(record.key())
@@ -22,7 +23,7 @@ class EmailService : KafkaBaseService<String, Email> {
         println("Email sent")
     }
 
-    override fun subscribing(consumer: KafkaConsumer<String, Email>, topic: String) {
+    override fun subscribing(consumer: KafkaConsumer<String, Message<Email>>, topic: String) {
         consumer.subscribe(Collections.singletonList(topic))
     }
 

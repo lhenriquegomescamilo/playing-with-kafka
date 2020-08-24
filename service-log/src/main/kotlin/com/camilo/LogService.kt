@@ -1,5 +1,6 @@
 package com.camilo
 
+import com.camilo.models.Message
 import org.apache.kafka.clients.consumer.ConsumerConfig
 import org.apache.kafka.clients.consumer.ConsumerRecord
 import org.apache.kafka.clients.consumer.KafkaConsumer
@@ -7,7 +8,7 @@ import org.apache.kafka.common.serialization.StringDeserializer
 import java.util.regex.Pattern
 
 class LogService : KafkaBaseService<String, String> {
-    override fun parser(record: ConsumerRecord<String, String>) {
+    override fun parser(record: ConsumerRecord<String, Message<String>>) {
         println("-----------------------------------------------")
         println("LOG")
         println(record.key())
@@ -18,7 +19,7 @@ class LogService : KafkaBaseService<String, String> {
         println("-----------------------------------------------")
     }
 
-    override fun subscribing(consumer: KafkaConsumer<String, String>, topic: String) {
+    override fun subscribing(consumer: KafkaConsumer<String, Message<String>>, topic: String) {
         consumer.subscribe(Pattern.compile(topic))
     }
 }

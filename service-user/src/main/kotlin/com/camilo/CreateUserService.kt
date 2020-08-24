@@ -1,5 +1,6 @@
 package com.camilo
 
+import com.camilo.models.Message
 import com.camilo.models.Order
 import org.apache.kafka.clients.consumer.ConsumerRecord
 import org.apache.kafka.clients.consumer.KafkaConsumer
@@ -20,11 +21,12 @@ class CreateUserService(
         }
     }
 
-    override fun parser(record: ConsumerRecord<String, Order>) {
+    override fun parser(record: ConsumerRecord<String, Message<Order>>) {
 
         println("-----------------------------------------------")
         println("Processing new order, checking for new user")
-        val order = record.value()
+        val value = record.value()
+        val order = value.payload
         if (isNewUser(order.email)) {
             insertNewUser(order.email)
             println("User ${order.email} was created")
@@ -49,7 +51,7 @@ class CreateUserService(
 
     }
 
-    override fun subscribing(consumer: KafkaConsumer<String, Order>, topic: String) {
+    override fun subscribing(consumer: KafkaConsumer<String, Message<Order>>, topic: String) {
         consumer.subscribe(Collections.singletonList(topic))
     }
 }

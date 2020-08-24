@@ -1,6 +1,7 @@
 package com.camilo
 
 import com.camilo.batch.IO
+import com.camilo.models.Message
 import com.camilo.models.User
 import org.apache.kafka.clients.consumer.ConsumerRecord
 import org.apache.kafka.clients.consumer.KafkaConsumer
@@ -15,8 +16,9 @@ class ReadingReportService(
         val source: Path = File("src/main/resources/report.txt").toPath()
     }
 
-    override fun parser(record: ConsumerRecord<String, User>) {
-        val user = record.value()
+    override fun parser(record: ConsumerRecord<String, Message<User>>) {
+        val value = record.value()
+        val user = value.payload
         println("-----------------------------------------------")
         println("Processing report for user $user")
 
@@ -28,7 +30,7 @@ class ReadingReportService(
     }
 
 
-    override fun subscribing(consumer: KafkaConsumer<String, User>, topic: String) {
+    override fun subscribing(consumer: KafkaConsumer<String, Message<User>>, topic: String) {
         consumer.subscribe(Collections.singletonList(topic))
     }
 }
