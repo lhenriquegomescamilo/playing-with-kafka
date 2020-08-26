@@ -45,6 +45,7 @@ class KafkaService<T>(
         properties.setProperty(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, GsonDeserializer::class.java.name)
         properties.setProperty(ConsumerConfig.GROUP_ID_CONFIG, groupId)
         properties.setProperty(ConsumerConfig.CLIENT_ID_CONFIG, UUID.randomUUID().toString())
+        properties.setProperty(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, "1")
         propertiesExtras?.let { properties.putAll(it.toMap()) }
         return properties
     }

@@ -1,6 +1,6 @@
 ### Commands
 
-* To start do kafka you will need use the following commands:
+* To start the apache kafka you will need use the following commands:
 
 ```bash
 # Startup the zookeper
