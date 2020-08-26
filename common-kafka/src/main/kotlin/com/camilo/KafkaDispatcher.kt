@@ -11,8 +11,9 @@ import org.apache.kafka.common.serialization.StringSerializer
 import java.io.Closeable
 import java.util.*
 import java.util.Objects.nonNull
+import java.util.concurrent.Future
 
-class KafkaDispatcher<T>() : Closeable {
+class KafkaDispatcher<T> : Closeable {
     private val producer: KafkaProducer<String, Message<T>> = KafkaProducer(mainProperties())
 
 
@@ -37,10 +38,25 @@ class KafkaDispatcher<T>() : Closeable {
         }
     }
 
-    fun send(topic: String, key: String, payload: T, correlationId: CorrelationId) {
+    fun sendSync(topic: String, key: String, payload: T, correlationId: CorrelationId) {
+        val future = sendMessageAsync(correlationId, payload, topic, key)
+        future.get()
+    }
+
+    fun sendAsync(topic: String, key: String, payload: T, correlationId: CorrelationId) {
+        sendMessageAsync(correlationId, payload, topic, key)
+    }
+
+    private fun sendMessageAsync(
+        correlationId: CorrelationId,
+        payload: T,
+        topic: String,
+        key: String,
+    ): Future<RecordMetadata> {
         val message = Message(correlationId, payload)
         val record = ProducerRecord(topic, key, message)
-        producer.send(record, handlerMessage()).get()
+        val future = producer.send(record, handlerMessage())
+        return future
     }
 
     override fun close() {

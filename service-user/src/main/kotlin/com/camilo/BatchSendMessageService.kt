@@ -30,12 +30,13 @@ class BatchSendMessageService(
         println("Processing new batch")
         println("Topic : $message")
         for (user in findAllUsers()) {
-            userDispatcher.send(
+            userDispatcher.sendAsync(
                 record.value().payload,
                 user.uuid,
                 user,
                 message.id.continueWith(BatchSendMessageService::class.java.simpleName)
             )
+            println("Sending to user ${user.uuid}")
         }
         println("Users processed")
     }

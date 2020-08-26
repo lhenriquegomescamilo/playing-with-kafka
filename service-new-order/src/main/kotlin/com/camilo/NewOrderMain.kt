@@ -26,11 +26,11 @@ fun main() {
                 )
                 val body = "Thank you for order! We are processing your order!!!"
 
-                orderDispatcher.send("ECOMMERCE_NEW_ORDER",
+                orderDispatcher.sendSync("ECOMMERCE_NEW_ORDER",
                     email,
                     order,
                     CorrelationId(NewOrderMain::class.java.simpleName))
-                emailDisatcher.send("ECOMMERCE_SEND_EMAIL",
+                emailDisatcher.sendSync("ECOMMERCE_SEND_EMAIL",
                     email,
                     Email(email, body),
                     CorrelationId(NewOrderMain::class.java.simpleName))

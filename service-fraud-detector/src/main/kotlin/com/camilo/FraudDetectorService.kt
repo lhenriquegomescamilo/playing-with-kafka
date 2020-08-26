@@ -30,12 +30,12 @@ class FraudDetectorService(
         if (isFraud(order)) {
             // pretting that the process fraud happens when the amaount is great than 4500
             println("Order $order is a fraud!!!")
-            orderDispatcher.send("ECOMMERCE_ORDER_REJECTED",
+            orderDispatcher.sendSync("ECOMMERCE_ORDER_REJECTED",
                 order.email,
                 order,
                 message.id.continueWith(FraudDetectorService::class.java.simpleName))
         } else {
-            orderDispatcher.send("ECOMMERCE_ORDER_APPROVED",
+            orderDispatcher.sendSync("ECOMMERCE_ORDER_APPROVED",
                 order.email,
                 order,
                 message.id.continueWith(FraudDetectorService::class.java.simpleName))

@@ -2,6 +2,7 @@ package com.camilo
 
 import com.camilo.models.Message
 import com.camilo.serializers.GsonDeserializer
+import com.camilo.serializers.GsonSerializer
 import org.apache.kafka.clients.consumer.ConsumerConfig
 import org.apache.kafka.clients.consumer.ConsumerRecord
 import org.apache.kafka.clients.consumer.KafkaConsumer
@@ -16,7 +17,7 @@ class KafkaService<T>(
     private val parser: (ConsumerRecord<String, Message<T>>) -> Unit,
     val subscribing: (KafkaConsumer<String, Message<T>>, String) -> Unit,
     val type: Class<T>,
-    val propertiesExtras: Map<String, String>? = emptyMap()
+    val propertiesExtras: Map<String, String>? = emptyMap(),
 ) : Closeable {
     private val consumer: KafkaConsumer<String, Message<T>>
 
@@ -26,16 +27,35 @@ class KafkaService<T>(
     }
 
     fun run() {
-        while (true) {
-            val records = consumer.poll(Duration.ofMillis(100))
-            if (!records.isEmpty) {
-                println("I found ${records.count()} records")
-                for (record in records) {
-                    parser(record)
+        KafkaDispatcher<ByteArray>().use { deadLetterDispatcher ->
+            while (true) {
+                val records = consumer.poll(Duration.ofMillis(100))
+                if (!records.isEmpty) {
+                    println("I found ${records.count()} records")
+                    for (record in records) {
+                        parseRecord(record, deadLetterDispatcher)
+                    }
                 }
             }
         }
 
+    }
+
+    private fun parseRecord(
+        record: ConsumerRecord<String, Message<T>>,
+        deadLetterDispatcher: KafkaDispatcher<ByteArray>,
+    ) {
+        try {
+            parser(record)
+        } catch (e: Exception) {
+            val message = record.value()
+            deadLetterDispatcher.sendSync(
+                topic = "ECOMMERCE_DEAD_LETTER",
+                key = message.id.toString(),
+                payload = GsonSerializer<String>().serialize("", message.id.toString()),
+                correlationId = message.id.continueWith("DeadLetter"),
+            )
+        }
     }
 
     private fun properties(groupId: String): Properties {

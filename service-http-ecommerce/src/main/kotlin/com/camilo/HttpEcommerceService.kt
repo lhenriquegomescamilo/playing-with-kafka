@@ -46,7 +46,7 @@ fun main() {
 }
 
 private suspend fun generateAllReports(call: ApplicationCall) {
-    batchDispatcher.send("ECOMMERCE_SEND_MESSAGE_TO_ALL_USERS",
+    batchDispatcher.sendSync("ECOMMERCE_SEND_MESSAGE_TO_ALL_USERS",
         "ECOMMERCE_USER_GENERATE_READING_REPORT",
         "ECOMMERCE_USER_GENERATE_READING_REPORT",
         CorrelationId(HttpEcommerceService::class.java.simpleName))
@@ -67,11 +67,11 @@ fun sendOrderToKafka(order: Order) {
     val email = order.email
     val orderId = UUID.randomUUID().toString()
     order.orderId = orderId
-    orderDispatcher.send("ECOMMERCE_NEW_ORDER",
+    orderDispatcher.sendSync("ECOMMERCE_NEW_ORDER",
         email,
         order,
         CorrelationId(HttpEcommerceService::class.java.simpleName))
-    emailDisatcher.send("ECOMMERCE_SEND_EMAIL",
+    emailDisatcher.sendSync("ECOMMERCE_SEND_EMAIL",
         email,
         Email(email),
         CorrelationId(HttpEcommerceService::class.java.simpleName))
