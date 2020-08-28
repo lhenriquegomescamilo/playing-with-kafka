@@ -11,7 +11,7 @@ import java.io.File
 import java.nio.file.Path
 import java.util.*
 
-class ReadingReportService : KafkaBaseService<String, User>, ConsumerService<User> {
+class ReadingReportService : KafkaBaseService<String, User>(), ConsumerService<User> {
     companion object {
         val source: Path = File("src/main/resources/report.txt").toPath()
     }

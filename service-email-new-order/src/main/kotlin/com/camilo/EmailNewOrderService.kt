@@ -1,5 +1,7 @@
 package com.camilo
 
+import com.camilo.consumer.ConsumerService
+import com.camilo.consumer.ServiceRunner
 import com.camilo.models.CorrelationId
 import com.camilo.models.Email
 import com.camilo.models.Message
@@ -10,7 +12,8 @@ import java.util.*
 
 class EmailNewOrderService(
     private val emailNewOrderDispatcher: KafkaDispatcher<Email> = KafkaDispatcher(),
-) : KafkaBaseService<String, Order> {
+) : KafkaBaseService<String, Order>(), ConsumerService<Order> {
+
     override fun parser(record: ConsumerRecord<String, Message<Order>>) {
         val value = record.value()
         val order = value.payload
@@ -35,15 +38,12 @@ class EmailNewOrderService(
     override fun subscribing(consumer: KafkaConsumer<String, Message<Order>>, topic: String) {
         consumer.subscribe(Collections.singletonList(topic))
     }
+
+    override fun getTopic(): String = "ECOMMERCE_NEW_ORDER"
+
+    override fun getConsumerGroup(): String = "66"+EmailNewOrderService::class.java.simpleName
 }
 
 fun main() {
-    val emailNewOrderService = EmailNewOrderService()
-    KafkaService(
-        topic = "ECOMMERCE_NEW_ORDER",
-        groupId = EmailNewOrderService::class.java.simpleName,
-        parser = emailNewOrderService::parser,
-        subscribing = emailNewOrderService::subscribing,
-        type = Order::class.java
-    ).use { it.run() }
+    ServiceRunner(::EmailNewOrderService).start(numberOfThreads = 1)
 }

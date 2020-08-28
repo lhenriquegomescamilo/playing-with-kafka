@@ -10,7 +10,7 @@ import java.util.*
 
 class CreateUserService(
     private val connection: Connection = DriverManager.getConnection("jdbc:sqlite:target/users_database.db")
-) : KafkaBaseService<String, Order> {
+) : KafkaBaseService<String, Order>() {
     init {
         try {
             connection.createStatement()

@@ -12,4 +12,5 @@ interface ConsumerService<T> {
     fun getConsumerGroup(): String
 
     fun subscribing(consumer: KafkaConsumer<String, Message<T>>, topic: String)
+    fun getPropertiesExtras(): Map<String, String>?
 }

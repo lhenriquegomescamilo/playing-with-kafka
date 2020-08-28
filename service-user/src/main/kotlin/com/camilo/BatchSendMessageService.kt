@@ -11,7 +11,7 @@ import java.util.*
 class BatchSendMessageService(
     private val connection: Connection = DriverManager.getConnection("jdbc:sqlite:target/users_database.db"),
     private val userDispatcher: KafkaDispatcher<User> = KafkaDispatcher(),
-) : KafkaBaseService<String, String> {
+) : KafkaBaseService<String, String>() {
 
 
     init {

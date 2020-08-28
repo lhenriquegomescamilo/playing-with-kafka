@@ -10,7 +10,7 @@ import java.util.*
 
 class FraudDetectorService(
     private val orderDispatcher: KafkaDispatcher<Order> = KafkaDispatcher(),
-) : KafkaBaseService<String, Order> {
+) : KafkaBaseService<String, Order>() {
     override fun parser(record: ConsumerRecord<String, Message<Order>>) {
         val value = record.value()
         val order = value.payload

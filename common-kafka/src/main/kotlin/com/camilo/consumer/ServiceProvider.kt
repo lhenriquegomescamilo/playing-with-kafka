@@ -1,8 +1,6 @@
 package com.camilo.consumer
 
 import com.camilo.KafkaService
-import org.apache.kafka.clients.consumer.ConsumerConfig
-import org.apache.kafka.common.serialization.StringDeserializer
 import java.util.concurrent.Callable
 
 class ServiceProvider<T>(
@@ -16,7 +14,7 @@ class ServiceProvider<T>(
             groupId = service.getConsumerGroup(),
             parser = service::parser,
             subscribing = service::subscribing,
-            propertiesExtras = mapOf(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG to StringDeserializer::class.java.name)
+            propertiesExtras = service.getPropertiesExtras()
         ).use { it.run() }
     }
 

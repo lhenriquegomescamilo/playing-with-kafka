@@ -7,7 +7,7 @@ import org.apache.kafka.clients.consumer.KafkaConsumer
 import org.apache.kafka.common.serialization.StringDeserializer
 import java.util.regex.Pattern
 
-class LogService : KafkaBaseService<String, String> {
+class LogService : KafkaBaseService<String, String>() {
     override fun parser(record: ConsumerRecord<String, Message<String>>) {
         println("-----------------------------------------------")
         println("LOG")

@@ -48,6 +48,8 @@ class KafkaService<T>(
         try {
             parser(record)
         } catch (e: Exception) {
+            println("Something happened")
+            e.printStackTrace()
             val message = record.value()
             deadLetterDispatcher.sendSync(
                 topic = "ECOMMERCE_DEAD_LETTER",
@@ -66,6 +68,8 @@ class KafkaService<T>(
         properties.setProperty(ConsumerConfig.GROUP_ID_CONFIG, groupId)
         properties.setProperty(ConsumerConfig.CLIENT_ID_CONFIG, UUID.randomUUID().toString())
         properties.setProperty(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, "1")
+        properties.setProperty(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest")
+
         propertiesExtras?.let { properties.putAll(it.toMap()) }
         return properties
     }
