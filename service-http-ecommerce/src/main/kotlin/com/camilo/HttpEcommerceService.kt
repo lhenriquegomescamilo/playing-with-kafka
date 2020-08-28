@@ -1,7 +1,6 @@
 package com.camilo
 
 import com.camilo.models.CorrelationId
-import com.camilo.models.Email
 import com.camilo.models.Order
 import com.camilo.models.User
 import com.fasterxml.jackson.databind.SerializationFeature
@@ -18,7 +17,6 @@ import io.ktor.util.*
 import java.util.*
 
 val orderDispatcher = KafkaDispatcher<Order>()
-val emailDisatcher = KafkaDispatcher<Email>()
 val userDispatcher = KafkaDispatcher<User>()
 val batchDispatcher = KafkaDispatcher<String>()
 
@@ -41,7 +39,8 @@ fun main() {
 
     server.start(wait = true)
     server.addShutdownHook {
-        arrayOf(orderDispatcher, emailDisatcher, userDispatcher).forEach { kafkaDispatcher -> kafkaDispatcher.close() }
+        arrayOf(orderDispatcher, userDispatcher)
+            .forEach { kafkaDispatcher -> kafkaDispatcher.close() }
     }
 }
 
@@ -70,10 +69,6 @@ fun sendOrderToKafka(order: Order) {
     orderDispatcher.sendSync("ECOMMERCE_NEW_ORDER",
         email,
         order,
-        CorrelationId(HttpEcommerceService::class.java.simpleName))
-    emailDisatcher.sendSync("ECOMMERCE_SEND_EMAIL",
-        email,
-        Email(email),
         CorrelationId(HttpEcommerceService::class.java.simpleName))
 
 }

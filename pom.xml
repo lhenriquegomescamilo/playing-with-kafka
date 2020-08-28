@@ -8,7 +8,7 @@
     <artifactId>ecommerce</artifactId>
     <version>1.0.0-SNAPSHOT</version>
     <modules>
-        <module>servie-email</module>
+        <module>service-email</module>
         <module>service-fraud-detector</module>
         <module>service-log</module>
         <module>service-new-order</module>
@@ -16,6 +16,7 @@
         <module>service-user</module>
         <module>service-http-ecommerce</module>
         <module>service-reading-report</module>
+        <module>service-email-new-order</module>
     </modules>
     <packaging>pom</packaging>
 
