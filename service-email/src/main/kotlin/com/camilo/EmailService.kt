@@ -1,5 +1,7 @@
 package com.camilo
 
+import com.camilo.consumer.ConsumerService
+import com.camilo.consumer.ServiceRunner
 import com.camilo.models.Email
 import com.camilo.models.Message
 import org.apache.kafka.clients.consumer.ConsumerRecord
@@ -7,7 +9,7 @@ import org.apache.kafka.clients.consumer.KafkaConsumer
 import java.time.Duration
 import java.util.*
 
-class EmailService : KafkaBaseService<String, Email>, ConsumerService<String> {
+class EmailService : KafkaBaseService<String, Email>, ConsumerService<String, Email> {
     override fun parser(record: ConsumerRecord<String, Message<Email>>) {
         println("-----------------------------------------------")
         println("Send email")
@@ -33,7 +35,6 @@ class EmailService : KafkaBaseService<String, Email>, ConsumerService<String> {
     override fun getConsumerGroup(): String {
         return EmailService::class.java.simpleName
     }
-
 
 }
 

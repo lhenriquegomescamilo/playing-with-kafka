@@ -1,6 +1,8 @@
 package com.camilo
 
 import com.camilo.batch.IO
+import com.camilo.consumer.ConsumerService
+import com.camilo.consumer.ServiceRunner
 import com.camilo.models.Message
 import com.camilo.models.User
 import org.apache.kafka.clients.consumer.ConsumerRecord
@@ -9,7 +11,7 @@ import java.io.File
 import java.nio.file.Path
 import java.util.*
 
-class ReadingReportService : KafkaBaseService<String, User> {
+class ReadingReportService : KafkaBaseService<String, User>, ConsumerService<String, User> {
     companion object {
         val source: Path = File("src/main/resources/report.txt").toPath()
     }
@@ -31,15 +33,11 @@ class ReadingReportService : KafkaBaseService<String, User> {
     override fun subscribing(consumer: KafkaConsumer<String, Message<User>>, topic: String) {
         consumer.subscribe(Collections.singletonList(topic))
     }
+
+    override fun getTopic() = "ECOMMERCE_USER_GENERATE_READING_REPORT"
+    override fun getConsumerGroup(): String = ReadingReportService::class.java.simpleName
 }
 
 fun main() {
-    val readingReportService = ReadingReportService()
-    KafkaService(
-        topic = "ECOMMERCE_USER_GENERATE_READING_REPORT",
-        groupId = ReadingReportService::class.java.simpleName,
-        parser = readingReportService::parser,
-        subscribing = readingReportService::subscribing,
-        type = User::class.java
-    ).use { it.run() }
+    ServiceRunner(::ReadingReportService).start(numberOfThreads = 3)
 }
