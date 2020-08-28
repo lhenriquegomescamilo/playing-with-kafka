@@ -41,7 +41,7 @@ class EmailNewOrderService(
 
     override fun getTopic(): String = "ECOMMERCE_NEW_ORDER"
 
-    override fun getConsumerGroup(): String = "66"+EmailNewOrderService::class.java.simpleName
+    override fun getConsumerGroup(): String = EmailNewOrderService::class.java.simpleName
 }
 
 fun main() {
