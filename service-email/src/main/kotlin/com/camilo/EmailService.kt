@@ -2,14 +2,12 @@ package com.camilo
 
 import com.camilo.models.Email
 import com.camilo.models.Message
-import org.apache.kafka.clients.consumer.ConsumerConfig
 import org.apache.kafka.clients.consumer.ConsumerRecord
 import org.apache.kafka.clients.consumer.KafkaConsumer
-import org.apache.kafka.common.serialization.StringDeserializer
 import java.time.Duration
 import java.util.*
 
-class EmailService : KafkaBaseService<String, Email> {
+class EmailService : KafkaBaseService<String, Email>, ConsumerService<String> {
     override fun parser(record: ConsumerRecord<String, Message<Email>>) {
         println("-----------------------------------------------")
         println("Send email")
@@ -23,22 +21,23 @@ class EmailService : KafkaBaseService<String, Email> {
         println("Email sent")
     }
 
+
     override fun subscribing(consumer: KafkaConsumer<String, Message<Email>>, topic: String) {
         consumer.subscribe(Collections.singletonList(topic))
     }
 
+    override fun getTopic(): String {
+        return "ECOMMERCE_SEND_EMAIL"
+    }
+
+    override fun getConsumerGroup(): String {
+        return EmailService::class.java.simpleName
+    }
+
+
 }
 
 fun main() {
-    val emailService = EmailService()
-    KafkaService(
-        topic = "ECOMMERCE_SEND_EMAIL",
-        groupId = FraudDetectorService::class.java.simpleName,
-        parser = emailService::parser,
-        subscribing = emailService::subscribing,
-        type = Email::class.java,
-        propertiesExtras = mapOf(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG to StringDeserializer::class.java.name)
-    ).use { it.run() }
-
+    ServiceRunner(::EmailService).start(numberOfThreads = 3)
 
 }

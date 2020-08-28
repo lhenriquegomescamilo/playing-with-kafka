@@ -16,7 +16,7 @@ class KafkaService<T>(
     val groupId: String,
     private val parser: (ConsumerRecord<String, Message<T>>) -> Unit,
     val subscribing: (KafkaConsumer<String, Message<T>>, String) -> Unit,
-    val type: Class<T>,
+    val type: Class<T>? = null,
     val propertiesExtras: Map<String, String>? = emptyMap(),
 ) : Closeable {
     private val consumer: KafkaConsumer<String, Message<T>>
