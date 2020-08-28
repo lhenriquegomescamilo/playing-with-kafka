@@ -9,7 +9,7 @@ import org.apache.kafka.clients.consumer.KafkaConsumer
 import java.time.Duration
 import java.util.*
 
-class EmailService : KafkaBaseService<String, Email>, ConsumerService<String, Email> {
+class EmailService : KafkaBaseService<String, Email>, ConsumerService<Email> {
     override fun parser(record: ConsumerRecord<String, Message<Email>>) {
         println("-----------------------------------------------")
         println("Send email")

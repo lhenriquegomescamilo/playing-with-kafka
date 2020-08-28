@@ -5,8 +5,8 @@ import org.apache.kafka.clients.consumer.ConsumerConfig
 import org.apache.kafka.common.serialization.StringDeserializer
 import java.util.concurrent.Callable
 
-class ServiceProvider<T, E>(
-    val factory: () -> ConsumerService<T, E>,
+class ServiceProvider<T>(
+    val factory: () -> ConsumerService<T>,
 ) : Callable<Unit> {
 
     override fun call() {

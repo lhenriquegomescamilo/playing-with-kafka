@@ -2,9 +2,9 @@ package com.camilo.consumer
 
 import java.util.concurrent.Executors
 
-class ServiceRunner<T, E>(
-    factory: () -> ConsumerService<T, E>,
-    private val serviceProvider: ServiceProvider<T, E> = ServiceProvider(factory),
+class ServiceRunner<T>(
+    factory: () -> ConsumerService<T>,
+    private val serviceProvider: ServiceProvider<T> = ServiceProvider(factory),
 ) {
 
 

@@ -4,12 +4,12 @@ import com.camilo.models.Message
 import org.apache.kafka.clients.consumer.ConsumerRecord
 import org.apache.kafka.clients.consumer.KafkaConsumer
 
-interface ConsumerService<T, E> {
-    fun parser(record: ConsumerRecord<String, Message<E>>)
+interface ConsumerService<T> {
+    fun parser(record: ConsumerRecord<String, Message<T>>)
 
     fun getTopic(): String
 
     fun getConsumerGroup(): String
 
-    fun subscribing(consumer: KafkaConsumer<String, Message<E>>, topic: String)
+    fun subscribing(consumer: KafkaConsumer<String, Message<T>>, topic: String)
 }
