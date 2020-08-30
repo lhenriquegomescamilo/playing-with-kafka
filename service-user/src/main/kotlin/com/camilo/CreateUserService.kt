@@ -12,15 +12,11 @@ import java.util.*
 
 class CreateUserService(
     private val connection: Connection = DriverManager.getConnection("jdbc:sqlite:target/users_database.db"),
+    val localDatabase: LocalDatabase = LocalDatabase(databaseName = "users_database"),
 ) : KafkaBaseService<String, Order>(), ConsumerService<Order> {
+
     init {
-        try {
-            connection.createStatement()
-                .execute("CREATE TABLE Users( uuid varchar(200) primary key, email varchar(200))")
-        } catch (e: Exception) {
-            // be careful, the sql could be wrong
-            e.printStackTrace()
-        }
+        localDatabase.createIfNotExists("CREATE TABLE Users( uuid varchar(200) primary key, email varchar(200))")
     }
 
     override fun parser(record: ConsumerRecord<String, Message<Order>>) {
@@ -38,20 +34,21 @@ class CreateUserService(
         println("-----------------------------------------------")
     }
 
+    private fun insertNewUser(email: String) {
+        val statement = "insert into Users (uuid, email) values (?,?)"
+        val uuid = UUID.randomUUID().toString()
+        localDatabase.updateStateDatabase(statement, uuid, email)
+        println("Created user $uuid  with e-mail $email")
+
+    }
+
+
     private fun isNewUser(email: String): Boolean {
-        val exists = connection.prepareStatement("select uuid from Users where email = ? limit 1 ")
-        exists.setString(1, email)
-        val result = exists.executeQuery()
+        val query = "select uuid from Users where email = ? limit 1 "
+        val result = localDatabase.query(query, email)
         return !result.next()
     }
 
-    private fun insertNewUser(email: String) {
-        val insert = connection.prepareStatement("insert into Users (uuid, email) values (?,?)")
-        insert.setString(1, UUID.randomUUID().toString())
-        insert.setString(2, email)
-        insert.execute()
-
-    }
 
     override fun subscribing(consumer: KafkaConsumer<String, Message<Order>>, topic: String) {
         consumer.subscribe(Collections.singletonList(topic))
