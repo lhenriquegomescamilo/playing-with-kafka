@@ -1,5 +1,7 @@
 package com.camilo
 
+import com.camilo.consumer.ConsumerService
+import com.camilo.consumer.ServiceRunner
 import com.camilo.models.Message
 import com.camilo.models.Order
 import org.apache.kafka.clients.consumer.ConsumerRecord
@@ -9,8 +11,8 @@ import java.sql.DriverManager
 import java.util.*
 
 class CreateUserService(
-    private val connection: Connection = DriverManager.getConnection("jdbc:sqlite:target/users_database.db")
-) : KafkaBaseService<String, Order>() {
+    private val connection: Connection = DriverManager.getConnection("jdbc:sqlite:target/users_database.db"),
+) : KafkaBaseService<String, Order>(), ConsumerService<Order> {
     init {
         try {
             connection.createStatement()
@@ -54,15 +56,12 @@ class CreateUserService(
     override fun subscribing(consumer: KafkaConsumer<String, Message<Order>>, topic: String) {
         consumer.subscribe(Collections.singletonList(topic))
     }
+
+    override fun getTopic() = "ECOMMERCE_NEW_ORDER"
+
+    override fun getConsumerGroup() = CreateUserService::class.java.simpleName
 }
 
 fun main() {
-    val createUserService = CreateUserService()
-    KafkaService(
-        topic = "ECOMMERCE_NEW_ORDER",
-        groupId = CreateUserService::class.java.simpleName,
-        parser = createUserService::parser,
-        subscribing = createUserService::subscribing,
-        type = Order::class.java
-    ).use { it.run() }
+    ServiceRunner(::CreateUserService).start(numberOfThreads = 1)
 }
