@@ -70,7 +70,11 @@
             <groupId>com.camilo</groupId>
             <artifactId>common-kafka</artifactId>
             <version>1.0.0-SNAPSHOT</version>
-            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.camilo</groupId>
+            <artifactId>common-database</artifactId>
+            <version>1.0.0-SNAPSHOT</version>
         </dependency>
 
     </dependencies>

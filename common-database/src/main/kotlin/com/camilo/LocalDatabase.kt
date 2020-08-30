@@ -40,4 +40,7 @@ class LocalDatabase(
     fun query(query: String, vararg params: String): ResultSet {
         return preparedStatement(query, params).executeQuery()
     }
+
+    fun close() = connection.close()
+
 }

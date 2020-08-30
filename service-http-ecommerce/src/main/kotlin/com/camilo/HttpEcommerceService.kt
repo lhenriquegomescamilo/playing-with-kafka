@@ -14,7 +14,6 @@ import io.ktor.routing.*
 import io.ktor.server.engine.*
 import io.ktor.server.netty.*
 import io.ktor.util.*
-import java.util.*
 
 val orderDispatcher = KafkaDispatcher<Order>()
 val userDispatcher = KafkaDispatcher<User>()
@@ -58,16 +57,23 @@ private suspend fun generateAllReports(call: ApplicationCall) {
 
 private suspend fun handleOrderRequest(call: ApplicationCall) {
     val orderRequest = call.receive<Order>()
-    sendOrderToKafka(orderRequest)
-    call.respond(HttpStatusCode.NoContent)
-    println("New order sent successfully")
-}
+    orderRequest.orderId = call.request.headers["uuid"].toString()
+    OrdersDatabase().use {
+        if (it.saveNewOrder(orderRequest)) {
+            sendOrderToKafka(orderRequest)
+            call.respond(HttpStatusCode.OK, "New order sent successfully")
+            println("New order sent successfully")
+        } else {
+            call.respond(HttpStatusCode.OK, "Order was already processed")
+            println("Order was already processed")
+        }
 
+    }
+
+}
 
 fun sendOrderToKafka(order: Order) {
     val email = order.email
-    val orderId = UUID.randomUUID().toString()
-    order.orderId = orderId
     orderDispatcher.sendSync(
         topic = "ECOMMERCE_NEW_ORDER",
         key = email,

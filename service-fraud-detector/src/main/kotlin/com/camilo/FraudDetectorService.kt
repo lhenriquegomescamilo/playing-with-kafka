@@ -12,7 +12,13 @@ import java.util.*
 
 class FraudDetectorService(
     private val orderDispatcher: KafkaDispatcher<Order> = KafkaDispatcher(),
+    private val localDatabase: LocalDatabase = LocalDatabase(databaseName = "frauds_database"),
 ) : KafkaBaseService<String, Order>(), ConsumerService<Order> {
+
+    init {
+        localDatabase.createIfNotExists(sql = "create table Orders(uuid varchar(200) primary key, is_fraud boolean)")
+    }
+
     override fun parser(record: ConsumerRecord<String, Message<Order>>) {
         val value = record.value()
         val order = value.payload
@@ -23,24 +29,37 @@ class FraudDetectorService(
         println(record.partition())
         println(record.offset())
         Thread.sleep(Duration.ofSeconds(5).toMillis())
-        detectorFraud(order, value)
-        println("Order processed")
+        if (wasNotProcessed(order)) {
+            detectorFraud(order, value)
+            println("Order processed")
+        } else {
+            println("Order ${order.orderId} was already processed")
+        }
         println("-----------------------------------------------")
+    }
+
+    private fun wasNotProcessed(order: Order): Boolean {
+        return localDatabase.query("select uuid from Orders where uuid = ? limit 1", order.orderId).next().not()
     }
 
     private fun detectorFraud(order: Order, message: Message<Order>) {
         if (isFraud(order)) {
-            // pretting that the process fraud happens when the amaount is great than 4500
+            localDatabase.updateStateDatabase("insert into Orders(uuid,is_fraud) values(?, true)", order.orderId)
+
             println("Order $order is a fraud!!!")
-            orderDispatcher.sendSync("ECOMMERCE_ORDER_REJECTED",
-                order.email,
-                order,
-                message.id.continueWith(FraudDetectorService::class.java.simpleName))
+            orderDispatcher.sendSync(
+                topic = "ECOMMERCE_ORDER_REJECTED",
+                key = order.email,
+                payload = order,
+                correlationId = message.id.continueWith(FraudDetectorService::class.java.simpleName))
         } else {
-            orderDispatcher.sendSync("ECOMMERCE_ORDER_APPROVED",
-                order.email,
-                order,
-                message.id.continueWith(FraudDetectorService::class.java.simpleName))
+            localDatabase.updateStateDatabase("insert into Orders(uuid,is_fraud) values(?, false)", order.orderId)
+            orderDispatcher.sendSync(
+                topic = "ECOMMERCE_ORDER_APPROVED",
+                key = order.email,
+                payload = order,
+                correlationId = message.id.continueWith(FraudDetectorService::class.java.simpleName)
+            )
             println("Approved order $order")
         }
     }
@@ -58,5 +77,5 @@ class FraudDetectorService(
 }
 
 fun main() {
-    ServiceRunner(::FraudDetectorService).start(numberOfThreads = 3)
+    ServiceRunner(::FraudDetectorService).start(numberOfThreads = 1)
 }
