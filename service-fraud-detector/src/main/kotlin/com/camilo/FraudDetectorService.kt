@@ -1,5 +1,7 @@
 package com.camilo
 
+import com.camilo.consumer.ConsumerService
+import com.camilo.consumer.ServiceRunner
 import com.camilo.models.Message
 import com.camilo.models.Order
 import org.apache.kafka.clients.consumer.ConsumerRecord
@@ -10,7 +12,7 @@ import java.util.*
 
 class FraudDetectorService(
     private val orderDispatcher: KafkaDispatcher<Order> = KafkaDispatcher(),
-) : KafkaBaseService<String, Order>() {
+) : KafkaBaseService<String, Order>(), ConsumerService<Order> {
     override fun parser(record: ConsumerRecord<String, Message<Order>>) {
         val value = record.value()
         val order = value.payload
@@ -49,15 +51,12 @@ class FraudDetectorService(
     override fun subscribing(consumer: KafkaConsumer<String, Message<Order>>, topic: String) {
         consumer.subscribe(Collections.singletonList(topic))
     }
+
+    override fun getTopic() = "ECOMMERCE_NEW_ORDER"
+
+    override fun getConsumerGroup() = FraudDetectorService::class.java.simpleName
 }
 
 fun main() {
-    val fraudDetectorService = FraudDetectorService()
-    KafkaService(
-        topic = "ECOMMERCE_NEW_ORDER",
-        groupId = FraudDetectorService::class.java.simpleName,
-        parser = fraudDetectorService::parser,
-        subscribing = fraudDetectorService::subscribing,
-        type = Order::class.java
-    ).use { it.run() }
+    ServiceRunner(::FraudDetectorService).start(numberOfThreads = 3)
 }
